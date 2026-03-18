@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dive Log V3</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <h1>Dive Log V3</h1>
+  <input id="searchInput" placeholder="Search dives, tags, notes..." />
+</header>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <button id="addTripBtn">+ Trip</button>
+    <div id="tree"></div>
+  </aside>
+
+  <main class="main">
+
+    <div id="empty">Select a dive</div>
+
+    <div id="diveView" class="hidden">
+
+      <h2 id="diveTitle"></h2>
+      <p id="divePath"></p>
+
+      <div class="card">
+        <label>Site Name</label>
+        <input id="siteInput">
+
+        <label>Notes</label>
+        <textarea id="notesInput"></textarea>
+      </div>
+
+      <div class="card">
+        <h3>Stats</h3>
+        <p id="stats"></p>
+      </div>
+
+      <div class="card drop-zone" id="dropZone">
+        <h3>Photos (drag here)</h3>
+        <input type="file" id="fileInput" multiple accept="image/*">
+        <div id="photos"></div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<div id="viewer" class="viewer hidden">
+  <img id="viewerImg">
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
