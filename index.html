@@ -1,62 +1,1369 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dive Log V3</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dive Log V4</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg1: #021520;
+      --bg2: #06314a;
+      --bg3: #0b6f98;
+      --panel: rgba(255, 255, 255, 0.9);
+      --panel-strong: rgba(255, 255, 255, 0.96);
+      --text: #10222c;
+      --muted: #567080;
+      --accent: #0d7db8;
+      --accent-dark: #075d8a;
+      --danger: #bf2f2f;
+      --shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+      --radius: 18px;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255,255,255,0.08), transparent 20%),
+        radial-gradient(circle at 80% 15%, rgba(255,255,255,0.08), transparent 18%),
+        radial-gradient(circle at 75% 75%, rgba(255,255,255,0.06), transparent 22%),
+        linear-gradient(180deg, var(--bg1), var(--bg2) 45%, var(--bg3));
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.18;
+      background:
+        repeating-radial-gradient(circle at 20% 30%, rgba(255,255,255,0.18) 0 2px, transparent 2px 26px),
+        repeating-radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 0 1px, transparent 1px 20px),
+        linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.08) 30%, transparent 60%);
+      animation: drift 18s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes drift {
+      from { transform: translateX(0) translateY(0); }
+      50% { transform: translateX(-18px) translateY(10px); }
+      to { transform: translateX(0) translateY(0); }
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 16px;
+      backdrop-filter: blur(10px);
+      background: rgba(0, 20, 32, 0.55);
+      border-bottom: 1px solid rgba(255,255,255,0.14);
+    }
+
+    .brand h1 {
+      color: white;
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .brand p {
+      color: rgba(255,255,255,0.8);
+      margin: 4px 0 0;
+      font-size: 0.92rem;
+    }
+
+    .search-wrap {
+      width: min(430px, 100%);
+    }
+
+    .search-wrap input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: none;
+      outline: none;
+      font-size: 0.96rem;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 330px 1fr;
+      gap: 16px;
+      padding: 16px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .sidebar {
+      background: rgba(255,255,255,0.16);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 22px;
+      padding: 14px;
+      min-height: calc(100vh - 100px);
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar-top {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .main {
+      min-width: 0;
+    }
+
+    .panel {
+      background: var(--panel);
+      border-radius: 20px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .empty-state {
+      min-height: 320px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    .empty-state h2 {
+      margin-top: 0;
+      font-size: 2rem;
+    }
+
+    .hero-panel {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .hero-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .trip-cover-preview {
+      width: 110px;
+      height: 110px;
+      border-radius: 18px;
+      object-fit: cover;
+      border: 4px solid rgba(13,125,184,0.22);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+    }
+
+    .hero-text h2 {
+      margin: 0 0 6px;
+      font-size: 1.7rem;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .btn,
+    button {
+      border: none;
+      background: var(--accent);
+      color: white;
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(13,125,184,0.18);
+    }
+
+    .btn:hover,
+    button:hover {
+      background: var(--accent-dark);
+    }
+
+    .secondary {
+      background: #5a7d90;
+      box-shadow: none;
+    }
+
+    .secondary:hover {
+      background: #476676;
+    }
+
+    .danger {
+      background: var(--danger);
+      box-shadow: none;
+    }
+
+    .danger:hover {
+      background: #992525;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-weight: 700;
+    }
+
+    .block {
+      margin-top: 12px;
+    }
+
+    input[type="text"],
+    textarea {
+      border: 1px solid #c8d8e1;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 0.97rem;
+      font-family: inherit;
+      background: white;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 130px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: var(--panel-strong);
+      border: 1px solid #d8e5ec;
+      border-radius: 16px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent-dark);
+    }
+
+    .photos-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .photo-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .drop-zone {
+      border: 2px dashed rgba(13,125,184,0.36);
+      transition: 0.2s ease;
+    }
+
+    .drop-zone.dragover {
+      background: rgba(13,125,184,0.08);
+      border-color: var(--accent);
+      transform: scale(1.003);
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .photo-card {
+      background: var(--panel-strong);
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid #d8e6ed;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+      cursor: pointer;
+      background: #e8f2f7;
+    }
+
+    .photo-body {
+      padding: 12px;
+    }
+
+    .photo-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .photo-caption {
+      font-weight: 700;
+      font-size: 0.95rem;
+      word-break: break-word;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      min-height: 24px;
+    }
+
+    .tag {
+      background: #dceff8;
+      color: #114a66;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 0.75rem;
+    }
+
+    .photo-controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .tree-trip,
+    .tree-date,
+    .tree-dive {
+      background: rgba(255,255,255,0.86);
+      border-radius: 16px;
+      margin-bottom: 10px;
+      padding: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .tree-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .tree-name {
+      font-weight: 700;
+      cursor: pointer;
+      word-break: break-word;
+    }
+
+    .tree-children {
+      margin-left: 14px;
+      margin-top: 8px;
+      border-left: 2px solid rgba(13,125,184,0.2);
+      padding-left: 10px;
+    }
+
+    .tree-buttons {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tree-buttons button {
+      padding: 6px 9px;
+      font-size: 0.78rem;
+      border-radius: 9px;
+      box-shadow: none;
+    }
+
+    .cover-mini {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      object-fit: cover;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    .viewer {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(0,0,0,0.86);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .viewer img {
+      max-width: min(95vw, 1000px);
+      max-height: 58vh;
+      border-radius: 16px;
+      object-fit: contain;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .viewer-panel {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(760px, 92vw);
+      background: rgba(255,255,255,0.97);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .favorite-row {
+      flex-direction: row;
+      align-items: center;
+      margin-top: 10px;
+      gap: 8px;
+    }
+
+    .viewer-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .viewer-close,
+    .viewer-nav {
+      position: absolute;
+      border: none;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      font-size: 1.4rem;
+      background: rgba(255,255,255,0.9);
+      color: #0d2a38;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    .viewer-close {
+      top: 18px;
+      right: 18px;
+    }
+
+    .viewer-nav.left {
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .viewer-nav.right {
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .helper {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    @media (max-width: 980px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        min-height: auto;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .search-wrap {
+        width: 100%;
+      }
+
+      .viewer img {
+        max-height: 45vh;
+      }
+    }
+  </style>
 </head>
 <body>
-
-<header class="topbar">
-  <h1>Dive Log V3</h1>
-  <input id="searchInput" placeholder="Search dives, tags, notes..." />
-</header>
-
-<div class="app">
-
-  <aside class="sidebar">
-    <button id="addTripBtn">+ Trip</button>
-    <div id="tree"></div>
-  </aside>
-
-  <main class="main">
-
-    <div id="empty">Select a dive</div>
-
-    <div id="diveView" class="hidden">
-
-      <h2 id="diveTitle"></h2>
-      <p id="divePath"></p>
-
-      <div class="card">
-        <label>Site Name</label>
-        <input id="siteInput">
-
-        <label>Notes</label>
-        <textarea id="notesInput"></textarea>
-      </div>
-
-      <div class="card">
-        <h3>Stats</h3>
-        <p id="stats"></p>
-      </div>
-
-      <div class="card drop-zone" id="dropZone">
-        <h3>Photos (drag here)</h3>
-        <input type="file" id="fileInput" multiple accept="image/*">
-        <div id="photos"></div>
-      </div>
-
+  <header class="topbar">
+    <div class="brand">
+      <h1>Dive Log V4</h1>
+      <p>Trips • Dates • Dives • Photos</p>
     </div>
+    <div class="search-wrap">
+      <input id="searchInput" type="text" placeholder="Search trip, dive, site, tags, captions..." />
+    </div>
+  </header>
 
-  </main>
-</div>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <button id="addTripBtn">+ Trip</button>
+      </div>
+      <div class="helper">Create a Trip → Date → Dive, then upload photos.</div>
+      <div id="tree"></div>
+    </aside>
 
-<div id="viewer" class="viewer hidden">
-  <img id="viewerImg">
-</div>
+    <main class="main">
+      <div id="emptyState" class="panel empty-state">
+        <div>
+          <h2>Select a dive</h2>
+          <p>Create a Trip, then add a Date, then a Dive.</p>
+        </div>
+      </div>
 
-<script src="app.js"></script>
+      <section id="diveView" class="hidden">
+        <div class="panel hero-panel">
+          <div class="hero-left">
+            <img id="tripCoverPreview" class="trip-cover-preview hidden" alt="Trip cover" />
+            <div class="hero-text">
+              <h2 id="diveTitle"></h2>
+              <p id="divePath" class="muted"></p>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <label class="btn">
+              Set Trip Cover
+              <input id="tripCoverInput" type="file" accept="image/*" hidden />
+            </label>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Dive Info</h3>
+          <div class="form-grid">
+            <label>
+              Site Name
+              <input id="siteInput" type="text" />
+            </label>
+            <label>
+              Dive Name
+              <input id="diveNameInput" type="text" />
+            </label>
+          </div>
+
+          <label class="block">
+            Notes
+            <textarea id="notesInput" rows="5"></textarea>
+          </label>
+        </div>
+
+        <div class="panel">
+          <h3>Dive Stats</h3>
+          <div id="stats" class="stats-grid"></div>
+        </div>
+
+        <div class="panel drop-zone" id="dropZone">
+          <div class="photos-top">
+            <div>
+              <h3>Photos</h3>
+              <p class="muted">Drag photos here or use the upload button.</p>
+            </div>
+            <div class="photo-actions">
+              <label class="btn">
+                Upload Photos
+                <input id="fileInput" type="file" multiple accept="image/*" hidden />
+              </label>
+              <button id="bulkFavoriteBtn" class="secondary">Favorite Selected</button>
+              <button id="bulkDeleteBtn" class="danger">Delete Selected</button>
+            </div>
+          </div>
+
+          <div id="photos" class="photo-grid"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="viewer" class="viewer hidden">
+    <button id="closeViewerBtn" class="viewer-close">✕</button>
+    <button id="prevBtn" class="viewer-nav left">‹</button>
+    <img id="viewerImg" alt="Dive photo" />
+    <button id="nextBtn" class="viewer-nav right">›</button>
+
+    <div class="viewer-panel">
+      <label>
+        Caption
+        <input id="captionInput" type="text" />
+      </label>
+      <label>
+        Tags (comma separated)
+        <input id="tagsInput" type="text" />
+      </label>
+      <label class="favorite-row">
+        <input id="favoriteInput" type="checkbox" />
+        Favorite
+      </label>
+      <div class="viewer-buttons">
+        <button id="savePhotoBtn">Save Photo Info</button>
+        <button id="deletePhotoBtn" class="danger">Delete Photo</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "diveLogV4SingleFile";
+    let data = loadData();
+    let selectedDive = null;
+    let viewerIndex = 0;
+    let currentSearch = "";
+    let touchStartX = 0;
+
+    const treeEl = document.getElementById("tree");
+    const addTripBtn = document.getElementById("addTripBtn");
+    const searchInput = document.getElementById("searchInput");
+
+    const emptyState = document.getElementById("emptyState");
+    const diveView = document.getElementById("diveView");
+    const diveTitle = document.getElementById("diveTitle");
+    const divePath = document.getElementById("divePath");
+    const tripCoverPreview = document.getElementById("tripCoverPreview");
+    const tripCoverInput = document.getElementById("tripCoverInput");
+
+    const siteInput = document.getElementById("siteInput");
+    const diveNameInput = document.getElementById("diveNameInput");
+    const notesInput = document.getElementById("notesInput");
+    const statsEl = document.getElementById("stats");
+
+    const dropZone = document.getElementById("dropZone");
+    const fileInput = document.getElementById("fileInput");
+    const photosEl = document.getElementById("photos");
+    const bulkFavoriteBtn = document.getElementById("bulkFavoriteBtn");
+    const bulkDeleteBtn = document.getElementById("bulkDeleteBtn");
+
+    const viewer = document.getElementById("viewer");
+    const viewerImg = document.getElementById("viewerImg");
+    const closeViewerBtn = document.getElementById("closeViewerBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    const captionInput = document.getElementById("captionInput");
+    const tagsInput = document.getElementById("tagsInput");
+    const favoriteInput = document.getElementById("favoriteInput");
+    const savePhotoBtn = document.getElementById("savePhotoBtn");
+    const deletePhotoBtn = document.getElementById("deletePhotoBtn");
+
+    function loadData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { trips: [] };
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return { trips: [] };
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function uid() {
+      return "_" + Math.random().toString(36).slice(2, 11);
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function normalize(str) {
+      return String(str || "").toLowerCase().trim();
+    }
+
+    function createTrip(name) {
+      return {
+        id: uid(),
+        name,
+        expanded: true,
+        coverImage: "",
+        dates: []
+      };
+    }
+
+    function createDate(name) {
+      return {
+        id: uid(),
+        name,
+        expanded: true,
+        dives: []
+      };
+    }
+
+    function createDive(name) {
+      return {
+        id: uid(),
+        name,
+        site: "",
+        notes: "",
+        photos: []
+      };
+    }
+
+    function countTripDives(trip) {
+      return trip.dates.reduce((sum, date) => sum + date.dives.length, 0);
+    }
+
+    function countTripPhotos(trip) {
+      return trip.dates.reduce(
+        (sum, date) => sum + date.dives.reduce((s, dive) => s + dive.photos.length, 0),
+        0
+      );
+    }
+
+    function findTrip(tripId) {
+      return data.trips.find(t => t.id === tripId);
+    }
+
+    function findDate(trip, dateId) {
+      return trip.dates.find(d => d.id === dateId);
+    }
+
+    function findDive(trip, date, diveId) {
+      return date.dives.find(d => d.id === diveId);
+    }
+
+    function refreshSelectedDive() {
+      if (!selectedDive) return;
+      selectDive(selectedDive.trip.id, selectedDive.date.id, selectedDive.dive.id);
+    }
+
+    function searchMatches(trip, date, dive) {
+      if (!currentSearch) return true;
+      const haystack = [
+        trip.name,
+        date.name,
+        dive.name,
+        dive.site,
+        dive.notes,
+        ...dive.photos.map(p => p.caption || ""),
+        ...dive.photos.flatMap(p => p.tags || [])
+      ].join(" ").toLowerCase();
+
+      return haystack.includes(currentSearch);
+    }
+
+    function renderTree() {
+      treeEl.innerHTML = "";
+
+      if (data.trips.length === 0) {
+        treeEl.innerHTML = '<div class="panel" style="margin-top:12px;">No trips yet. Press <strong>+ Trip</strong>.</div>';
+        return;
+      }
+
+      data.trips.forEach(trip => {
+        const matchingDives = trip.dates.flatMap(date =>
+          date.dives.filter(dive => searchMatches(trip, date, dive))
+        );
+
+        if (currentSearch && matchingDives.length === 0 && !normalize(trip.name).includes(currentSearch)) {
+          return;
+        }
+
+        const tripEl = document.createElement("div");
+        tripEl.className = "tree-trip";
+
+        const coverHtml = trip.coverImage
+          ? '<img class="cover-mini" src="' + trip.coverImage + '" alt="">'
+          : "";
+
+        tripEl.innerHTML = `
+          <div class="tree-row">
+            <div class="tree-name" data-action="toggle-trip" data-id="${trip.id}">
+              ${coverHtml}${trip.expanded ? "▼" : "▶"} ${escapeHtml(trip.name)} (${countTripDives(trip)} dives, ${countTripPhotos(trip)} photos)
+            </div>
+            <div class="tree-buttons">
+              <button data-action="add-date" data-id="${trip.id}">+ Date</button>
+              <button data-action="rename-trip" data-id="${trip.id}">Rename</button>
+              <button data-action="delete-trip" data-id="${trip.id}">Delete</button>
+            </div>
+          </div>
+          <div class="tree-children ${trip.expanded ? "" : "hidden"}"></div>
+        `;
+
+        const tripChildren = tripEl.querySelector(".tree-children");
+
+        trip.dates.forEach(date => {
+          const visibleDives = date.dives.filter(dive => searchMatches(trip, date, dive));
+          if (currentSearch && visibleDives.length === 0 && !normalize(date.name).includes(currentSearch)) {
+            return;
+          }
+
+          const dateEl = document.createElement("div");
+          dateEl.className = "tree-date";
+          dateEl.innerHTML = `
+            <div class="tree-row">
+              <div class="tree-name" data-action="toggle-date" data-trip-id="${trip.id}" data-id="${date.id}">
+                ${date.expanded ? "▼" : "▶"} ${escapeHtml(date.name)} (${date.dives.length} dives)
+              </div>
+              <div class="tree-buttons">
+                <button data-action="add-dive" data-trip-id="${trip.id}" data-id="${date.id}">+ Dive</button>
+                <button data-action="rename-date" data-trip-id="${trip.id}" data-id="${date.id}">Rename</button>
+                <button data-action="delete-date" data-trip-id="${trip.id}" data-id="${date.id}">Delete</button>
+              </div>
+            </div>
+            <div class="tree-children ${date.expanded ? "" : "hidden"}"></div>
+          `;
+
+          const dateChildren = dateEl.querySelector(".tree-children");
+
+          date.dives.forEach(dive => {
+            if (currentSearch && !searchMatches(trip, date, dive)) return;
+
+            const diveEl = document.createElement("div");
+            diveEl.className = "tree-dive";
+            diveEl.innerHTML = `
+              <div class="tree-row">
+                <div class="tree-name" data-action="select-dive" data-trip-id="${trip.id}" data-date-id="${date.id}" data-id="${dive.id}">
+                  ${escapeHtml(dive.name)} (${dive.photos.length} photos)
+                </div>
+                <div class="tree-buttons">
+                  <button data-action="rename-dive" data-trip-id="${trip.id}" data-date-id="${date.id}" data-id="${dive.id}">Rename</button>
+                  <button data-action="delete-dive" data-trip-id="${trip.id}" data-date-id="${date.id}" data-id="${dive.id}">Delete</button>
+                </div>
+              </div>
+            `;
+            dateChildren.appendChild(diveEl);
+          });
+
+          tripChildren.appendChild(dateEl);
+        });
+
+        treeEl.appendChild(tripEl);
+      });
+    }
+
+    function renderSelectedDive() {
+      if (!selectedDive) {
+        emptyState.classList.remove("hidden");
+        diveView.classList.add("hidden");
+        return;
+      }
+
+      emptyState.classList.add("hidden");
+      diveView.classList.remove("hidden");
+
+      const { trip, date, dive } = selectedDive;
+      diveTitle.textContent = dive.name;
+      divePath.textContent = trip.name + " / " + date.name;
+
+      if (trip.coverImage) {
+        tripCoverPreview.src = trip.coverImage;
+        tripCoverPreview.classList.remove("hidden");
+      } else {
+        tripCoverPreview.classList.add("hidden");
+      }
+
+      siteInput.value = dive.site || "";
+      diveNameInput.value = dive.name || "";
+      notesInput.value = dive.notes || "";
+
+      renderStats();
+      renderPhotos();
+    }
+
+    function renderStats() {
+      if (!selectedDive) return;
+
+      const { dive } = selectedDive;
+      const photoCount = dive.photos.length;
+      const favoriteCount = dive.photos.filter(p => p.favorite).length;
+      const tagCount = dive.photos.reduce((sum, p) => sum + (p.tags?.length || 0), 0);
+      const captionCount = dive.photos.filter(p => (p.caption || "").trim()).length;
+
+      statsEl.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-number">${photoCount}</div>
+          <div>Photos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">${favoriteCount}</div>
+          <div>Favorites</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">${tagCount}</div>
+          <div>Tags</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">${captionCount}</div>
+          <div>Captions</div>
+        </div>
+      `;
+    }
+
+    function renderPhotos() {
+      if (!selectedDive) return;
+      photosEl.innerHTML = "";
+
+      if (selectedDive.dive.photos.length === 0) {
+        photosEl.innerHTML = '<div class="muted">No photos yet.</div>';
+        return;
+      }
+
+      selectedDive.dive.photos.forEach((photo, index) => {
+        const tagsHtml = (photo.tags || [])
+          .map(tag => '<span class="tag">' + escapeHtml(tag) + '</span>')
+          .join("");
+
+        const card = document.createElement("div");
+        card.className = "photo-card";
+        card.innerHTML = `
+          <img src="${photo.dataUrl}" alt="" data-index="${index}">
+          <div class="photo-body">
+            <div class="photo-top">
+              <div class="photo-caption">${escapeHtml(photo.caption || "Untitled Photo")}</div>
+              <div>${photo.favorite ? "⭐" : ""}</div>
+            </div>
+            <div class="tags">${tagsHtml}</div>
+            <div class="photo-controls">
+              <label style="font-weight:600;">
+                <input type="checkbox" data-action="select-photo" data-id="${photo.id}" ${photo.selected ? "checked" : ""}>
+                Select
+              </label>
+              <button data-action="toggle-favorite" data-id="${photo.id}">
+                ${photo.favorite ? "Unfavorite" : "Favorite"}
+              </button>
+            </div>
+          </div>
+        `;
+
+        card.querySelector("img").addEventListener("click", () => openViewer(index));
+        photosEl.appendChild(card);
+      });
+    }
+
+    function selectDive(tripId, dateId, diveId) {
+      const trip = findTrip(tripId);
+      if (!trip) return;
+      const date = findDate(trip, dateId);
+      if (!date) return;
+      const dive = findDive(trip, date, diveId);
+      if (!dive) return;
+
+      selectedDive = { trip, date, dive };
+      renderSelectedDive();
+    }
+
+    function addTrip() {
+      const name = prompt("Trip name:");
+      if (!name || !name.trim()) return;
+
+      data.trips.push(createTrip(name.trim()));
+      saveData();
+      renderTree();
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function addFilesToDive(files) {
+      if (!selectedDive) return;
+
+      for (const file of files) {
+        if (!file.type.startsWith("image/")) continue;
+
+        const dataUrl = await fileToDataUrl(file);
+        selectedDive.dive.photos.push({
+          id: uid(),
+          dataUrl,
+          caption: file.name,
+          tags: [],
+          favorite: false,
+          selected: false
+        });
+      }
+
+      saveData();
+      renderSelectedDive();
+      renderTree();
+    }
+
+    function openViewer(index) {
+      viewerIndex = index;
+      updateViewer();
+      viewer.classList.remove("hidden");
+    }
+
+    function updateViewer() {
+      if (!selectedDive || !selectedDive.dive.photos[viewerIndex]) return;
+
+      const photo = selectedDive.dive.photos[viewerIndex];
+      viewerImg.src = photo.dataUrl;
+      captionInput.value = photo.caption || "";
+      tagsInput.value = (photo.tags || []).join(", ");
+      favoriteInput.checked = !!photo.favorite;
+    }
+
+    function closeViewer() {
+      viewer.classList.add("hidden");
+    }
+
+    function goPrev() {
+      if (!selectedDive) return;
+      viewerIndex = Math.max(0, viewerIndex - 1);
+      updateViewer();
+    }
+
+    function goNext() {
+      if (!selectedDive) return;
+      viewerIndex = Math.min(selectedDive.dive.photos.length - 1, viewerIndex + 1);
+      updateViewer();
+    }
+
+    addTripBtn.addEventListener("click", addTrip);
+
+    treeEl.addEventListener("click", e => {
+      const target = e.target;
+      const action = target.dataset.action;
+      if (!action) return;
+
+      if (action === "toggle-trip") {
+        const trip = findTrip(target.dataset.id);
+        if (!trip) return;
+        trip.expanded = !trip.expanded;
+        saveData();
+        renderTree();
+      }
+
+      if (action === "toggle-date") {
+        const trip = findTrip(target.dataset.tripId);
+        if (!trip) return;
+        const date = findDate(trip, target.dataset.id);
+        if (!date) return;
+        date.expanded = !date.expanded;
+        saveData();
+        renderTree();
+      }
+
+      if (action === "add-date") {
+        const trip = findTrip(target.dataset.id);
+        if (!trip) return;
+        const name = prompt("Date folder name:");
+        if (!name || !name.trim()) return;
+        trip.dates.push(createDate(name.trim()));
+        saveData();
+        renderTree();
+      }
+
+      if (action === "rename-trip") {
+        const trip = findTrip(target.dataset.id);
+        if (!trip) return;
+        const name = prompt("Rename trip:", trip.name);
+        if (!name || !name.trim()) return;
+        trip.name = name.trim();
+        saveData();
+        renderTree();
+        refreshSelectedDive();
+      }
+
+      if (action === "delete-trip") {
+        const trip = findTrip(target.dataset.id);
+        if (!trip) return;
+        if (!confirm('Delete trip "' + trip.name + '"?')) return;
+        data.trips = data.trips.filter(t => t.id !== trip.id);
+        if (selectedDive?.trip.id === trip.id) selectedDive = null;
+        saveData();
+        renderTree();
+        renderSelectedDive();
+      }
+
+      if (action === "add-dive") {
+        const trip = findTrip(target.dataset.tripId);
+        if (!trip) return;
+        const date = findDate(trip, target.dataset.id);
+        if (!date) return;
+        const name = prompt("Dive folder name:");
+        if (!name || !name.trim()) return;
+        date.dives.push(createDive(name.trim()));
+        saveData();
+        renderTree();
+      }
+
+      if (action === "rename-date") {
+        const trip = findTrip(target.dataset.tripId);
+        if (!trip) return;
+        const date = findDate(trip, target.dataset.id);
+        if (!date) return;
+        const name = prompt("Rename date:", date.name);
+        if (!name || !name.trim()) return;
+        date.name = name.trim();
+        saveData();
+        renderTree();
+        refreshSelectedDive();
+      }
+
+      if (action === "delete-date") {
+        const trip = findTrip(target.dataset.tripId);
+        if (!trip) return;
+        const date = findDate(trip, target.dataset.id);
+        if (!date) return;
+        if (!confirm('Delete date "' + date.name + '"?')) return;
+        trip.dates = trip.dates.filter(d => d.id !== date.id);
+        if (selectedDive?.date.id === date.id && selectedDive?.trip.id === trip.id) selectedDive = null;
+        saveData();
+        renderTree();
+        renderSelectedDive();
+      }
+
+      if (action === "select-dive") {
+        selectDive(target.dataset.tripId, target.dataset.dateId, target.dataset.id);
+      }
+
+      if (action === "rename-dive") {
+        const trip = findTrip(target.dataset.tripId);
+        if (!trip) return;
+        const date = findDate(trip, target.dataset.dateId);
+        if (!date) return;
+        const dive = findDive(trip, date, target.dataset.id);
+        if (!dive) return;
+        const name = prompt("Rename dive:", dive.name);
+        if (!name || !name.trim()) return;
+        dive.name = name.trim();
+        saveData();
+        renderTree();
+        refreshSelectedDive();
+      }
+
+      if (action === "delete-dive") {
+        const trip = findTrip(target.dataset.tripId);
+        if (!trip) return;
+        const date = findDate(trip, target.dataset.dateId);
+        if (!date) return;
+        const dive = findDive(trip, date, target.dataset.id);
+        if (!dive) return;
+        if (!confirm('Delete dive "' + dive.name + '"?')) return;
+        date.dives = date.dives.filter(d => d.id !== dive.id);
+        if (selectedDive?.dive.id === dive.id) selectedDive = null;
+        saveData();
+        renderTree();
+        renderSelectedDive();
+      }
+    });
+
+    siteInput.addEventListener("input", () => {
+      if (!selectedDive) return;
+      selectedDive.dive.site = siteInput.value;
+      saveData();
+      renderTree();
+    });
+
+    diveNameInput.addEventListener("input", () => {
+      if (!selectedDive) return;
+      selectedDive.dive.name = diveNameInput.value;
+      saveData();
+      renderTree();
+      renderSelectedDive();
+    });
+
+    notesInput.addEventListener("input", () => {
+      if (!selectedDive) return;
+      selectedDive.dive.notes = notesInput.value;
+      saveData();
+    });
+
+    tripCoverInput.addEventListener("change", async e => {
+      if (!selectedDive) return;
+      const file = e.target.files[0];
+      if (!file) return;
+      const dataUrl = await fileToDataUrl(file);
+      selectedDive.trip.coverImage = dataUrl;
+      saveData();
+      renderTree();
+      renderSelectedDive();
+      tripCoverInput.value = "";
+    });
+
+    fileInput.addEventListener("change", async e => {
+      await addFilesToDive([...e.target.files]);
+      fileInput.value = "";
+    });
+
+    dropZone.addEventListener("dragover", e => {
+      e.preventDefault();
+      dropZone.classList.add("dragover");
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.classList.remove("dragover");
+    });
+
+    dropZone.addEventListener("drop", async e => {
+      e.preventDefault();
+      dropZone.classList.remove("dragover");
+      await addFilesToDive([...e.dataTransfer.files]);
+    });
+
+    photosEl.addEventListener("click", e => {
+      const target = e.target;
+      const action = target.dataset.action;
+      if (!action || !selectedDive) return;
+
+      if (action === "toggle-favorite") {
+        const photo = selectedDive.dive.photos.find(p => p.id === target.dataset.id);
+        if (!photo) return;
+        photo.favorite = !photo.favorite;
+        saveData();
+        renderSelectedDive();
+      }
+    });
+
+    photosEl.addEventListener("change", e => {
+      const target = e.target;
+      const action = target.dataset.action;
+      if (action !== "select-photo" || !selectedDive) return;
+
+      const photo = selectedDive.dive.photos.find(p => p.id === target.dataset.id);
+      if (!photo) return;
+      photo.selected = target.checked;
+      saveData();
+    });
+
+    bulkFavoriteBtn.addEventListener("click", () => {
+      if (!selectedDive) return;
+      selectedDive.dive.photos.forEach(photo => {
+        if (photo.selected) photo.favorite = true;
+      });
+      saveData();
+      renderSelectedDive();
+    });
+
+    bulkDeleteBtn.addEventListener("click", () => {
+      if (!selectedDive) return;
+      const selectedCount = selectedDive.dive.photos.filter(p => p.selected).length;
+      if (!selectedCount) return;
+      if (!confirm("Delete " + selectedCount + " selected photo(s)?")) return;
+
+      selectedDive.dive.photos = selectedDive.dive.photos.filter(p => !p.selected);
+      saveData();
+      renderSelectedDive();
+      renderTree();
+    });
+
+    searchInput.addEventListener("input", () => {
+      currentSearch = normalize(searchInput.value);
+      renderTree();
+    });
+
+    closeViewerBtn.addEventListener("click", closeViewer);
+    prevBtn.addEventListener("click", goPrev);
+    nextBtn.addEventListener("click", goNext);
+
+    viewer.addEventListener("click", e => {
+      if (e.target === viewer) closeViewer();
+    });
+
+    savePhotoBtn.addEventListener("click", () => {
+      if (!selectedDive) return;
+      const photo = selectedDive.dive.photos[viewerIndex];
+      if (!photo) return;
+
+      photo.caption = captionInput.value.trim();
+      photo.tags = tagsInput.value
+        .split(",")
+        .map(tag => tag.trim())
+        .filter(Boolean);
+      photo.favorite = favoriteInput.checked;
+
+      saveData();
+      renderSelectedDive();
+      updateViewer();
+      renderTree();
+    });
+
+    deletePhotoBtn.addEventListener("click", () => {
+      if (!selectedDive) return;
+      const photo = selectedDive.dive.photos[viewerIndex];
+      if (!photo) return;
+
+      if (!confirm("Delete this photo?")) return;
+      selectedDive.dive.photos.splice(viewerIndex, 1);
+
+      if (viewerIndex >= selectedDive.dive.photos.length) {
+        viewerIndex = Math.max(0, selectedDive.dive.photos.length - 1);
+      }
+
+      saveData();
+      renderSelectedDive();
+      renderTree();
+
+      if (selectedDive.dive.photos.length === 0) {
+        closeViewer();
+      } else {
+        updateViewer();
+      }
+    });
+
+    viewer.addEventListener("touchstart", e => {
+      touchStartX = e.changedTouches[0].clientX;
+    });
+
+    viewer.addEventListener("touchend", e => {
+      const endX = e.changedTouches[0].clientX;
+      const dx = endX - touchStartX;
+
+      if (dx > 50) goPrev();
+      if (dx < -50) goNext();
+    });
+
+    document.addEventListener("keydown", e => {
+      if (viewer.classList.contains("hidden")) return;
+
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
+      if (e.key === "Escape") closeViewer();
+    });
+
+    renderTree();
+    renderSelectedDive();
+  </script>
 </body>
 </html>
