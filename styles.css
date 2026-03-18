@@ -1,0 +1,77 @@
+body {
+  margin:0;
+  font-family:Arial;
+  background:#eef5fb;
+}
+
+.topbar {
+  background:#0b5c8c;
+  color:white;
+  padding:10px;
+  display:flex;
+  gap:10px;
+}
+
+.topbar input {
+  flex:1;
+  padding:8px;
+}
+
+.app {
+  display:grid;
+  grid-template-columns:250px 1fr;
+}
+
+.sidebar {
+  background:white;
+  padding:10px;
+}
+
+.main {
+  padding:15px;
+}
+
+.card {
+  background:white;
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:10px;
+}
+
+.tree-item {
+  margin:5px 0;
+}
+
+.hidden {
+  display:none;
+}
+
+.photo {
+  width:100px;
+  height:100px;
+  object-fit:cover;
+  margin:5px;
+  cursor:pointer;
+}
+
+.viewer {
+  position:fixed;
+  inset:0;
+  background:black;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.viewer img {
+  max-width:95%;
+  max-height:95%;
+}
+
+.drop-zone {
+  border:2px dashed #aaa;
+}
+
+@media(max-width:800px){
+  .app{grid-template-columns:1fr;}
+}
